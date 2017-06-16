@@ -39,8 +39,24 @@ void *Cacar(void *threadid) {
     pthread_exit(NULL);
 }
 
+/* Cria thread para chamar o cacique */
+void chamaCacique(){
+    pthread_t thread;
+
+    int rc;
+
+    cout << "chamaCacique() : criando thread para o cacique caçar " << endl;
+    rc = pthread_create(&thread, NULL, Cacar, NULL);
+
+    if (rc){
+        cout << "Error: não foi possível criar thread," << rc << endl;
+        exit(-1);
+    }
+}
+
 /* Função principal */
 int main (){
+
     /* inicializa a semente do random */
     srand(time(NULL));
     pthread_t threads[NUM_THREADS];
@@ -48,13 +64,18 @@ int main (){
     int rc;
     int i;
 
+    /*
+        caldeirão começa vazio e chama o cacique pra caçar
+    */
+    chamaCacique();
+
     /* Gera as 5 threads correspondentes aos 5 índios */
     for( i=0; i < NUM_THREADS; i++ ){
-        cout << "main() : creating thread, " << i << endl;
+        cout << "main() : criando thread para os índios comerem, " << i << endl;
         rc = pthread_create(&threads[i], NULL, Comer, (void *)i);
 
         if (rc){
-            cout << "Error:unable to create thread," << rc << endl;
+            cout << "Error: não foi possível criar thread," << rc << endl;
             exit(-1);
         }
     }
