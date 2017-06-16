@@ -66,7 +66,9 @@ void *Comer(void *threadid) {
     /* verifica se o caldeirão está vazio */
     if(caldeirao == 0){
         /* se o caldeirão ta vazio chama o cacique para caçar */
+        pthread_mutex_unlock(&count_mutex);
         chamaCacique();
+        pthread_exit(NULL);
     }
 
     caldeirao--; /* comer = retirar uma unidade do caldeirão */
@@ -84,9 +86,6 @@ int main (){
 
     int rc;
     int i;
-
-    /* caldeirão começa vazio e chama o cacique pra caçar */
-    chamaCacique();
 
     /* Gera as 5 threads correspondentes aos 5 índios */
     for( i=0; i < NUM_THREADS; i++ ){
