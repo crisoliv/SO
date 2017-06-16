@@ -2,8 +2,11 @@
 #include <cstdlib>
 #include <pthread.h>
 #include <time.h>
+#include <mutex>
 
 using namespace std;
+
+pthread_mutex_t count_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 /* Números de índios */
 #define NUM_THREADS 5
@@ -12,15 +15,18 @@ int caldeirao = 0;
 
 /* Thread para os índios comerem no caldeirão */
 void *Comer(void *threadid) {
+    pthread_mutex_lock(&count_mutex);
     long tid;
     tid = (long)threadid;
     caldeirao--; /* comer = retirar uma unidade do caldeirão */
-    cout << "comeu a porção índio : " << tid << endl;
+    cout << "comeu a porção índio: " << tid << endl;
+    pthread_mutex_unlock(&count_mutex);
     pthread_exit(NULL);
 }
 
 /* Thread para o cacique caçar */
 void *Cacar(void *threadid) {
+    pthread_mutex_lock(&count_mutex);
     /* Pega uma caça aleatoriamente*/
     int aleato = rand()%3;
     string cacas[] = {"capivara", "mico leão ourado", "onça"};
@@ -36,6 +42,8 @@ void *Cacar(void *threadid) {
 
     /* Printa qual animal foi caçado */
     cout << "animal foi caçado: " << cacas[aleato] << endl;
+
+    pthread_mutex_unlock(&count_mutex);
     pthread_exit(NULL);
 }
 
@@ -45,13 +53,15 @@ void chamaCacique(){
 
     int rc;
 
-    cout << "chamaCacique() : criando thread para o cacique caçar " << endl;
+    cout << "chamaCacique(): criando thread para o cacique caçar " << endl;
     rc = pthread_create(&thread, NULL, Cacar, NULL);
 
     if (rc){
         cout << "Error: não foi possível criar thread," << rc << endl;
         exit(-1);
     }
+
+    pthread_join(thread, NULL);
 }
 
 /* Função principal */
@@ -65,7 +75,7 @@ int main (){
     int i;
 
     /*
-        caldeirão começa vazio e chama o cacique pra caçar
+    caldeirão começa vazio e chama o cacique pra caçar
     */
     chamaCacique();
 
@@ -78,6 +88,8 @@ int main (){
             cout << "Error: não foi possível criar thread," << rc << endl;
             exit(-1);
         }
+
+        pthread_join(threads[i], NULL);
     }
 
     pthread_exit(NULL);
