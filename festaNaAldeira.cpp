@@ -94,7 +94,7 @@ int main (){
     int rc;
     int i;
 
-    for(int j=0; j < 20; j++){
+    while(true){
         /* Gera as 5 threads correspondentes aos 5 índios */
         for( i=0; i < NUM_THREADS; i++ ){
             cout << "main() : criando thread para os índios comerem, " << i << endl;
