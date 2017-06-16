@@ -72,13 +72,14 @@ void *Comer(void *threadid) {
         /* libera a thread para evitar deadlock */
         pthread_mutex_unlock(&count_mutex);
         /* chama o cacique para caçar */
+        cout << "índio " << tid << " foi acordar o cacique " << endl;
         chamaCacique();
         /* sai da thread corrente */
         pthread_exit(NULL);
     }
 
     caldeirao--; /* comer = retirar uma unidade do caldeirão */
-    cout << "comeu a porção índio: " << tid << endl;
+    cout << "índio: " << tid << " comeu a porção"<< endl;
     pthread_mutex_unlock(&count_mutex);
     pthread_exit(NULL);
 }
