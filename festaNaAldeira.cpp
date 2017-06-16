@@ -6,6 +6,7 @@
 
 using namespace std;
 
+/* Para ser utilizado no lock e unlock */
 pthread_mutex_t count_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 /* Números de índios */
@@ -13,8 +14,9 @@ pthread_mutex_t count_mutex = PTHREAD_MUTEX_INITIALIZER;
 /* Caldeirão começa vazio */
 int caldeirao = 0;
 
-/* Thread para o cacique caçar */
+/* Função chamada dentro da Thread para o cacique caçar */
 void *Cacar(void *threadid) {
+    /* aplica o lock */
     pthread_mutex_lock(&count_mutex);
     /* Pega uma caça aleatoriamente*/
     int aleato = rand()%3;
@@ -34,6 +36,7 @@ void *Cacar(void *threadid) {
     /* Printa qual animal foi caçado */
     cout << "animal foi caçado: " << cacas[aleato] << endl;
 
+    /* desbloqueia a thread */
     pthread_mutex_unlock(&count_mutex);
     pthread_exit(NULL);
 }
@@ -57,7 +60,7 @@ void chamaCacique(){
 }
 
 
-/* Thread para os índios comerem no caldeirão */
+/* Função chamada dentro da Thread para os índios comerem no caldeirão */
 void *Comer(void *threadid) {
     pthread_mutex_lock(&count_mutex);
     long tid;
@@ -66,8 +69,11 @@ void *Comer(void *threadid) {
     /* verifica se o caldeirão está vazio */
     if(caldeirao == 0){
         /* se o caldeirão ta vazio chama o cacique para caçar */
+        /* libera a thread para evitar deadlock */
         pthread_mutex_unlock(&count_mutex);
+        /* chama o cacique para caçar */
         chamaCacique();
+        /* sai da thread corrente */
         pthread_exit(NULL);
     }
 
@@ -87,16 +93,18 @@ int main (){
     int rc;
     int i;
 
-    /* Gera as 5 threads correspondentes aos 5 índios */
-    for( i=0; i < NUM_THREADS; i++ ){
-        cout << "main() : criando thread para os índios comerem, " << i << endl;
-        rc = pthread_create(&threads[i], NULL, Comer, (void *)i);
+    for(int j=0; j < 20; j++){
+        /* Gera as 5 threads correspondentes aos 5 índios */
+        for( i=0; i < NUM_THREADS; i++ ){
+            cout << "main() : criando thread para os índios comerem, " << i << endl;
+            rc = pthread_create(&threads[i], NULL, Comer, (void *)i);
 
-        if (rc){
-            cout << "Error: não foi possível criar thread," << rc << endl;
-            exit(-1);
+            if (rc){
+                cout << "Error: não foi possível criar thread," << rc << endl;
+                exit(-1);
+            }
+
+            pthread_join(threads[i], NULL);
         }
-
-        pthread_join(threads[i], NULL);
     }
 }
