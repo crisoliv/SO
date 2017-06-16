@@ -13,17 +13,6 @@ pthread_mutex_t count_mutex = PTHREAD_MUTEX_INITIALIZER;
 /* Caldeirão começa vazio */
 int caldeirao = 0;
 
-/* Thread para os índios comerem no caldeirão */
-void *Comer(void *threadid) {
-    pthread_mutex_lock(&count_mutex);
-    long tid;
-    tid = (long)threadid;
-    caldeirao--; /* comer = retirar uma unidade do caldeirão */
-    cout << "comeu a porção índio: " << tid << endl;
-    pthread_mutex_unlock(&count_mutex);
-    pthread_exit(NULL);
-}
-
 /* Thread para o cacique caçar */
 void *Cacar(void *threadid) {
     pthread_mutex_lock(&count_mutex);
@@ -40,12 +29,15 @@ void *Cacar(void *threadid) {
         caldeirao = 15;
     }
 
+    //cout << "qtde no caldeirao " << caldeirao << endl;
+
     /* Printa qual animal foi caçado */
     cout << "animal foi caçado: " << cacas[aleato] << endl;
 
     pthread_mutex_unlock(&count_mutex);
     pthread_exit(NULL);
 }
+
 
 /* Cria thread para chamar o cacique */
 void chamaCacique(){
@@ -64,6 +56,25 @@ void chamaCacique(){
     pthread_join(thread, NULL);
 }
 
+
+/* Thread para os índios comerem no caldeirão */
+void *Comer(void *threadid) {
+    pthread_mutex_lock(&count_mutex);
+    long tid;
+    tid = (long)threadid;
+
+    /* verifica se o caldeirão está vazio */
+    if(caldeirao == 0){
+        /* se o caldeirão ta vazio chama o cacique para caçar */
+        chamaCacique();
+    }
+
+    caldeirao--; /* comer = retirar uma unidade do caldeirão */
+    cout << "comeu a porção índio: " << tid << endl;
+    pthread_mutex_unlock(&count_mutex);
+    pthread_exit(NULL);
+}
+
 /* Função principal */
 int main (){
 
@@ -74,9 +85,7 @@ int main (){
     int rc;
     int i;
 
-    /*
-    caldeirão começa vazio e chama o cacique pra caçar
-    */
+    /* caldeirão começa vazio e chama o cacique pra caçar */
     chamaCacique();
 
     /* Gera as 5 threads correspondentes aos 5 índios */
@@ -91,6 +100,4 @@ int main (){
 
         pthread_join(threads[i], NULL);
     }
-
-    pthread_exit(NULL);
 }
