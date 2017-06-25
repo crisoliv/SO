@@ -1,3 +1,13 @@
+/*
+    UNIVERSIDADE FEDERAL DO AMAZONAS - UFAM
+    SISTEMAS OPERACIONAIS
+    FESTA NA ALDEIA - USANDO THREAD
+    ALUNOS:
+        CRISTHIAN G. L. DE OLIVEIRA
+        IVO STINGHEN    
+*/
+
+
 #include <iostream>
 #include <cstdlib>
 #include <pthread.h>
