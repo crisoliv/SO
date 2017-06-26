@@ -98,7 +98,6 @@ int main() {
         pthread_create(&thr_barbeiro[j], NULL, f_barbeiro, (void*) &id_barbeiros[j]);
     }
 
-
     //join nas threads clientes criadas
     for (i = 0; i < N_CLIENTES; i++){
         pthread_join(thr_clientes[i], NULL);
