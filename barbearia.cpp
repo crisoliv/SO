@@ -34,7 +34,7 @@ void* f_barbeiro(void *v) {
     while(1) {
         sem_wait(&sem_cliente_cadeira); //espera por cliente na cadeira
         printf("Barbeiro %d cortou o cabelo de um cliente.\n", id_barbeiros);
-        sem_post(&sem_cabelo_cortado); //corta o cabelo
+        sem_post(&sem_cabelo_cortado); //posta que cliente cortou o cabelo
     }
     return NULL;
 }
@@ -42,9 +42,9 @@ void* f_barbeiro(void *v) {
 //função usada na thread para o atendente servir o cliente
 void* f_atendente(void *v) {
     while(1) {
-        sem_wait(&sem_cliente_entrou);
+        sem_wait(&sem_cliente_entrou); //espera o cliente entrar
         printf("O atendente serviu o cliente.\n");
-        sem_post(&sem_cliente_atendido);
+        sem_post(&sem_cliente_atendido);//posta que o cliente foi atendido
     }
     return NULL;
 }
@@ -55,14 +55,14 @@ void* f_cliente(void* v) {
 
     if (sem_trywait(&sem_cadeiras) == 0) {//cliente só entra se tiver uma cadeira de barbeiro vazia
         printf("Cliente %d entrou na barbearia.\n", id); //cliente entrou
-        sem_post(&sem_cliente_entrou);
-        sem_wait(&sem_cliente_atendido);
+        sem_post(&sem_cliente_entrou); //posta que um cliente entrou
+        sem_wait(&sem_cliente_atendido); //espera o cliente ser atendido pelo atendente
         sem_wait(&sem_cad_barbeiro); //espera pela cadeira do barbeiro
         printf("Cliente %d sentou na cadeira do barbeiro.\n", id);
-        sem_post(&sem_cliente_cadeira); //cliente senta na cadeira
-        sem_post(&sem_cadeiras); //cadeira ocupada
-        sem_wait(&sem_cabelo_cortado); //espera corta cabelo
-        sem_post(&sem_cad_barbeiro); //ocupa cadeira do barbeiro
+        sem_post(&sem_cliente_cadeira); //posta que tem um cliente sentado na cadeira
+        sem_post(&sem_cadeiras); //posta que cadeira está ocupada
+        sem_wait(&sem_cabelo_cortado); //espera cortar o cabelo
+        sem_post(&sem_cad_barbeiro); //posta que cadeira está ocupada (região crítica)
         printf("Cliente %d deixou a barbearia.\n", id); //cliente sai
     }else{
         printf("Cliente %d não entrou na barbearia porque está lotada.\n", id); //barbearia cheia
@@ -100,6 +100,7 @@ int main() {
         pthread_create(&thr_barbeiro[j], NULL, f_barbeiro, (void*) &id_barbeiros[j]);
     }
 
+    //cria thread para atendente
     pthread_create(&thr_atendente, NULL, f_atendente, NULL);
 
 
