@@ -8,6 +8,7 @@ IVO STINGHEN
 */
 
 #include <pthread.h>
+#include <queue>
 #include <semaphore.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -24,7 +25,7 @@ sem_t sem_cliente_cadeira;
 sem_t sem_cliente_atendido;
 sem_t sem_cliente_entrou;
 
-int sofa = 4, empe = 16;
+std::queue<int> sofa, empe;
 
 
 //função usada na thread para o barbeiro cortar cabelo
@@ -53,6 +54,7 @@ void* f_atendente(void *v) {
 void* f_cliente(void* v) {
     int id = *(int*) v;
 
+    sleep(id%3);
     if (sem_trywait(&sem_cadeiras) == 0) {//cliente só entra se tiver uma cadeira de barbeiro vazia
         printf("Cliente %d entrou na barbearia.\n", id); //cliente entrou
         sem_post(&sem_cliente_entrou); //posta que um cliente entrou
@@ -64,6 +66,27 @@ void* f_cliente(void* v) {
         sem_wait(&sem_cabelo_cortado); //espera cortar o cabelo
         sem_post(&sem_cad_barbeiro); //posta que cadeira está ocupada (região crítica)
         printf("Cliente %d deixou a barbearia.\n", id); //cliente sai
+        if(sofa.size() >= 0){
+            sem_wait(&sem_cad_barbeiro); //espera pela cadeira do barbeiro
+            printf("Cliente %d sentou na cadeira do barbeiro.\n", id);
+            sem_post(&sem_cliente_cadeira); //posta que tem um cliente sentado na cadeira
+            sem_post(&sem_cadeiras); //posta que cadeira está ocupada
+            sem_wait(&sem_cabelo_cortado); //espera cortar o cabelo
+            sem_post(&sem_cad_barbeiro); //posta que cadeira está ocupada (região crítica)
+            printf("Cliente %d deixou a barbearia.\n", id); //cliente sai
+            sofa.pop();
+            if(empe.size() >= 0){
+                sofa.push(empe.front());
+                empe.pop();
+            }
+        }
+    }else if(sofa.size() < 4){
+        sofa.push(id);
+        printf("Cliente %d sentou no sofá.\n", id);
+    }
+    else if(empe.size() < 16){
+        empe.push(id);
+        printf("Cliente %d está em pé.\n", id);
     }else{
         printf("Cliente %d não entrou na barbearia porque está lotada.\n", id); //barbearia cheia
     }
